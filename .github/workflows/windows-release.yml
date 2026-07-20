@@ -1,0 +1,60 @@
+name: Windows release
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "v*"
+
+jobs:
+  package:
+    runs-on: windows-2022
+    permissions:
+      contents: read
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+
+      - name: Install Qt 6
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: "6.8.3"
+          arch: "win64_msvc2022_64"
+          modules: "qtshadertools"
+
+      - name: Install OpenCV
+        shell: pwsh
+        run: vcpkg install opencv[imgcodecs]:x64-windows
+
+      - name: Configure release build
+        shell: pwsh
+        run: >
+          cmake -S . -B build -G Ninja
+          -DCMAKE_BUILD_TYPE=Release
+          -DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake
+
+      - name: Build
+        shell: pwsh
+        run: cmake --build build --parallel
+
+      - name: Bundle application and dependencies
+        shell: pwsh
+        run: |
+          $package = "dist/Pixelator-Windows-x86_64"
+          New-Item -ItemType Directory -Force -Path $package | Out-Null
+          windeployqt --release --qmldir . --dir $package build/pixelator.exe
+          Copy-Item "C:/vcpkg/installed/x64-windows/bin/*.dll" $package
+          Copy-Item "packaging/pixelator.svg" "$package/pixelator.svg"
+          Copy-Item "packaging/pixelator.desktop" "$package/README.txt"
+
+      - name: Create itch.io archive
+        shell: pwsh
+        run: Compress-Archive -Path dist/Pixelator-Windows-x86_64 -DestinationPath dist/Pixelator-Windows-x86_64.zip
+
+      - name: Upload Windows package
+        uses: actions/upload-artifact@v4
+        with:
+          name: Pixelator-Windows-x86_64
+          path: dist/Pixelator-Windows-x86_64.zip
+          if-no-files-found: error

@@ -1,0 +1,20 @@
+# Build
+cmake-build-*/
+build/
+dist/
+AppDir/
+*.AppImage
+
+# IDE
+.idea/
+.vscode/
+*.user
+*.autosave
+
+# Local agent / tooling
+.agents/
+.codex/
+
+# OS
+.DS_Store
+Thumbs.db

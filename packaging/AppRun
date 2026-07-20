@@ -1,0 +1,7 @@
+#!/bin/sh
+# AppImage entry point: point Qt at the bundled plugins and QML imports.
+APPDIR="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
+export QT_PLUGIN_PATH="$APPDIR/usr/plugins${QT_PLUGIN_PATH:+:$QT_PLUGIN_PATH}"
+export QML2_IMPORT_PATH="$APPDIR/usr/qml${QML2_IMPORT_PATH:+:$QML2_IMPORT_PATH}"
+export QML_IMPORT_PATH="$APPDIR/usr/qml${QML_IMPORT_PATH:+:$QML_IMPORT_PATH}"
+exec "$APPDIR/usr/bin/pixelator" "$@"

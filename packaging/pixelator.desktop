@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Pixelator
+Comment=Pixel-art batch processor
+Exec=pixelator
+Icon=pixelator
+Categories=Graphics;2DGraphics;RasterGraphics;
+Terminal=false
+StartupNotify=true
