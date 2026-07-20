@@ -76,7 +76,7 @@ void PixelWorker::addFiles(const QVariantList &urlsOrPaths)
     }
     if (changed) {
         emit queueChanged();
-        emit statusChanged(QString::number(m_queue.size()) + u" file(s) queued");
+        emit statusChanged(QString::number(m_queue.size()) + QStringLiteral(" file(s) queued"));
     }
 }
 
@@ -179,7 +179,7 @@ QString PixelWorker::outputPathFor(const QString &inputPath)
     const QString dir = QDir(pictures.isEmpty() ? QDir::homePath() : pictures).filePath("Pixelator Output");
     QDir().mkpath(dir);
     const QFileInfo info(inputPath);
-    return QDir(dir).filePath(info.completeBaseName() + u"_pixelated." + info.suffix());
+    return QDir(dir).filePath(info.completeBaseName() + QStringLiteral("_pixelated.") + info.suffix());
 }
 
 bool PixelWorker::processOne(const QString &inputPath, const QString &mode, const QString &palette, QString *error)
@@ -221,7 +221,7 @@ void PixelWorker::processAll(const QString &mode, const QString &palette)
             m_processing = false;
             emit processingChanged();
             emit processingFinished(succeeded, failed);
-            emit statusChanged(QString(u"Finished: %1 saved, %2 failed").arg(succeeded).arg(failed));
+            emit statusChanged(QStringLiteral("Finished: %1 saved, %2 failed").arg(succeeded).arg(failed));
         }, Qt::QueuedConnection);
     });
 }
