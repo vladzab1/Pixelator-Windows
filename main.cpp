@@ -7,10 +7,12 @@
 
 int main(int argc, char *argv[])
 {
+#ifdef Q_OS_LINUX
     // Prefer Wayland when available, while retaining X11 compatibility.
     qputenv("QT_QPA_PLATFORM", qEnvironmentVariableIsEmpty("QT_QPA_PLATFORM")
                                      ? "wayland;xcb"
                                      : qgetenv("QT_QPA_PLATFORM"));
+#endif
 
     QGuiApplication app(argc, argv);
     app.setApplicationName("Pixelator");
