@@ -25,25 +25,25 @@ jobs:
 
       - name: Install OpenCV
         shell: pwsh
-        run: vcpkg install opencv[imgcodecs]:x64-windows
+        run: vcpkg install opencv[jpeg,png,tiff,webp]:x64-windows
 
       - name: Configure release build
         shell: pwsh
         run: >
-          cmake -S . -B build -G Ninja
-          -DCMAKE_BUILD_TYPE=Release
+          cmake -S . -B build -G "Visual Studio 17 2022" -A x64
           -DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake
+          -DCMAKE_PREFIX_PATH="$env:QT_ROOT_DIR"
 
       - name: Build
         shell: pwsh
-        run: cmake --build build --parallel
+        run: cmake --build build --config Release --parallel
 
       - name: Bundle application and dependencies
         shell: pwsh
         run: |
           $package = "dist/Pixelator-Windows-x86_64"
           New-Item -ItemType Directory -Force -Path $package | Out-Null
-          windeployqt --release --qmldir . --dir $package build/pixelator.exe
+          windeployqt --release --qmldir . --dir $package build/Release/pixelator.exe
           Copy-Item "C:/vcpkg/installed/x64-windows/bin/*.dll" $package
           Copy-Item "packaging/pixelator.svg" "$package/pixelator.svg"
           Copy-Item "packaging/pixelator.desktop" "$package/README.txt"
