@@ -68,7 +68,7 @@ ApplicationWindow {
             Column { anchors.centerIn: parent; spacing: 8
                 Text { anchors.horizontalCenter: parent.horizontalCenter; text: "＋"; color: "#67e8f9"; font.pixelSize: 34; font.weight: Font.Light }
                 Text { text: "DROP YOUR ASSETS HERE"; color: "#dce5ff"; font.bold: true; font.pixelSize: 14; font.letterSpacing: 1.5 }
-                Text { anchors.horizontalCenter: parent.horizontalCenter; text: "PNG · JPG · JPEG · WEBP  —  multiple files supported"; color: "#7182a5"; font.pixelSize: 11 }
+                Text { anchors.horizontalCenter: parent.horizontalCenter; text: "PNG · JPG · JPEG · WEBP  —  outputs saved next to originals"; color: "#7182a5"; font.pixelSize: 11 }
             }
             DropArea { id: dropArea; anchors.fill: parent; keys: ["text/uri-list"]; onDropped: function(drop) { pixelWorker.addFiles(drop.urls); drop.acceptProposedAction() } }
         }

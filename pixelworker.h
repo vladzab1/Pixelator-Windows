@@ -12,7 +12,6 @@ class PixelWorker final : public QObject
     Q_OBJECT
     Q_PROPERTY(QStringList queue READ queue NOTIFY queueChanged)
     Q_PROPERTY(bool processing READ processing NOTIFY processingChanged)
-    Q_PROPERTY(QString outputDirectory READ outputDirectory CONSTANT)
 
 public:
     explicit PixelWorker(QObject *parent = nullptr);
@@ -20,7 +19,6 @@ public:
 
     [[nodiscard]] QStringList queue() const;
     [[nodiscard]] bool processing() const noexcept;
-    [[nodiscard]] QString outputDirectory() const;
 
     Q_INVOKABLE void addFiles(const QVariantList &urlsOrPaths);
     Q_INVOKABLE void removeAt(int index);
@@ -42,7 +40,9 @@ private:
     [[nodiscard]] static cv::Mat applyPalette(const cv::Mat &bgr, const QString &palette);
     [[nodiscard]] static bool isSupportedImage(const QString &path);
     [[nodiscard]] static QString localPath(const QVariant &urlOrPath);
-    [[nodiscard]] static QString outputPathFor(const QString &inputPath);
+    [[nodiscard]] static QString sanitizePaletteSuffix(const QString &palette);
+    [[nodiscard]] static QString outputPathFor(const QString &inputPath, int targetWidth,
+                                                const QString &palette);
     [[nodiscard]] static bool processOne(const QString &inputPath, const QString &mode,
                                          const QString &palette, QString *error);
 

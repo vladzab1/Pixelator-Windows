@@ -1,15 +1,14 @@
 #include "pixelworker.h"
 
-#include <QDir>
 #include <QFileInfo>
 #include <QMetaObject>
-#include <QStandardPaths>
 #include <QUrl>
 #include <QtConcurrent/QtConcurrentRun>
 
 #include <algorithm>
 #include <array>
 #include <cmath>
+#include <filesystem>
 #include <limits>
 #include <vector>
 
@@ -56,12 +55,6 @@ PixelWorker::~PixelWorker()
 
 QStringList PixelWorker::queue() const { return m_queue; }
 bool PixelWorker::processing() const noexcept { return m_processing; }
-
-QString PixelWorker::outputDirectory() const
-{
-    const auto pictures = QStandardPaths::writableLocation(QStandardPaths::PicturesLocation);
-    return QDir(pictures.isEmpty() ? QDir::homePath() : pictures).filePath("Pixelator Output");
-}
 
 void PixelWorker::addFiles(const QVariantList &urlsOrPaths)
 {
@@ -173,13 +166,45 @@ QString PixelWorker::localPath(const QVariant &urlOrPath)
     return url.isLocalFile() ? url.toLocalFile() : urlOrPath.toString().remove("file://");
 }
 
-QString PixelWorker::outputPathFor(const QString &inputPath)
+QString PixelWorker::sanitizePaletteSuffix(const QString &palette)
 {
-    const QString pictures = QStandardPaths::writableLocation(QStandardPaths::PicturesLocation);
-    const QString dir = QDir(pictures.isEmpty() ? QDir::homePath() : pictures).filePath("Pixelator Output");
-    QDir().mkpath(dir);
-    const QFileInfo info(inputPath);
-    return QDir(dir).filePath(info.completeBaseName() + QStringLiteral("_pixelated.") + info.suffix());
+    QString result;
+    result.reserve(palette.size());
+    for (const QChar ch : palette) {
+        if (ch.isLetterOrNumber())
+            result.append(ch.toLower());
+    }
+    return result.isEmpty() ? QStringLiteral("default") : result;
+}
+
+QString PixelWorker::outputPathFor(const QString &inputPath, int targetWidth, const QString &palette)
+{
+    namespace fs = std::filesystem;
+    const fs::path input(inputPath.toStdString());
+    const fs::path dir = input.parent_path();
+    const std::string stem = input.stem().string();
+    const std::string extension = input.has_extension() ? input.extension().string().substr(1) : "png";
+
+    const QString paletteSuffix = sanitizePaletteSuffix(palette);
+    const QString fileName = QStringLiteral("%1_pixelated_%2px_%3.%4")
+                                 .arg(QString::fromStdString(stem))
+                                 .arg(targetWidth)
+                                 .arg(paletteSuffix)
+                                 .arg(QString::fromStdString(extension));
+
+    fs::path output = dir / fileName.toStdString();
+
+    const fs::path absoluteInput = fs::absolute(input);
+    if (fs::absolute(output) == absoluteInput) {
+        const QString safeName = QStringLiteral("%1_pixelated_%2px_%3_out.%4")
+                                     .arg(QString::fromStdString(stem))
+                                     .arg(targetWidth)
+                                     .arg(paletteSuffix)
+                                     .arg(QString::fromStdString(extension));
+        output = dir / safeName.toStdString();
+    }
+
+    return QString::fromStdString(output.string());
 }
 
 bool PixelWorker::processOne(const QString &inputPath, const QString &mode, const QString &palette, QString *error)
@@ -195,7 +220,9 @@ bool PixelWorker::processOne(const QString &inputPath, const QString &mode, cons
     cv::resize(bgr, small, size, 0.0, 0.0, cv::INTER_NEAREST);
     small = applyPalette(small, palette);
     if (!alpha.empty()) { cv::Mat scaledAlpha, output; cv::resize(alpha, scaledAlpha, size, 0.0, 0.0, cv::INTER_NEAREST); cv::cvtColor(small, output, cv::COLOR_BGR2BGRA); cv::insertChannel(scaledAlpha, output, 3); small = output; }
-    if (!cv::imwrite(outputPathFor(inputPath).toStdString(), small)) { *error = QStringLiteral("OpenCV could not save the output"); return false; }
+    const int targetWidth = std::max(size.width, size.height);
+    const QString outputPath = outputPathFor(inputPath, targetWidth, palette);
+    if (!cv::imwrite(outputPath.toStdString(), small)) { *error = QStringLiteral("OpenCV could not save the output"); return false; }
     return true;
 }
 
