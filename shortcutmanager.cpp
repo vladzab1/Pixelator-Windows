@@ -60,6 +60,7 @@ bool ShortcutManager::createWindowsShortcut() const
     if (SUCCEEDED(hres))
     {
         psl->SetPath(targetPath.toStdWString().c_str());
+        psl->SetIconLocation(targetPath.toStdWString().c_str(), 0);
         psl->SetWorkingDirectory(QFileInfo(targetPath).absolutePath().toStdWString().c_str());
 
         IPersistFile* ppf = nullptr;
@@ -114,6 +115,7 @@ bool ShortcutManager::createLinuxDesktopEntry() const
 
     QString desktopFilePath = desktopDir + "/Pixelator.desktop";
 
+    QString iconPath = QString("%1/.local/share/icons/hicolor/scalable/apps/pixelator.svg").arg(QDir::homePath());
     QString desktopContent = QString(
         "[Desktop Entry]\n"
         "Version=1.0\n"
@@ -121,10 +123,10 @@ bool ShortcutManager::createLinuxDesktopEntry() const
         "Name=Pixelator\n"
         "Comment=Sprite Cleaner - Batch Edition\n"
         "Exec=%1\n"
-        "Icon=pixelator\n"
+        "Icon=%2\n"
         "Terminal=false\n"
         "Categories=Graphics;Utility;\n"
-    ).arg(appPath);
+    ).arg(appPath, iconPath);
 
     QFile file(desktopFilePath);
     if (!file.open(QIODevice::WriteOnly | QIODevice::Text))
