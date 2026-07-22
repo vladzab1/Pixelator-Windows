@@ -15,12 +15,14 @@ qt_add_executable(pixelator
     main.cpp
     pixelworker.cpp
     pixelworker.h
+    shortcutmanager.cpp
+    shortcutmanager.h
 )
 
 qt_add_qml_module(pixelator
     URI Pixelator
     VERSION 1.0
-    QML_FILES Main.qml
+    QML_FILES Main.qml FirstLaunchDialog.qml
 )
 
 target_link_libraries(pixelator PRIVATE
@@ -31,6 +33,10 @@ target_link_libraries(pixelator PRIVATE
     Qt6::Concurrent
     ${OpenCV_LIBS}
 )
+
+if(WIN32)
+    target_link_libraries(pixelator PRIVATE ole32)
+endif()
 
 target_include_directories(pixelator PRIVATE ${OpenCV_INCLUDE_DIRS})
 

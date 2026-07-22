@@ -1,4 +1,5 @@
 #include "pixelworker.h"
+#include "shortcutmanager.h"
 
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>
@@ -8,10 +9,11 @@
 int main(int argc, char *argv[])
 {
 #ifdef Q_OS_LINUX
-    // Prefer Wayland when available, while retaining X11 compatibility.
-    qputenv("QT_QPA_PLATFORM", qEnvironmentVariableIsEmpty("QT_QPA_PLATFORM")
-                                     ? "wayland;xcb"
-                                     : qgetenv("QT_QPA_PLATFORM"));
+    if (qEnvironmentVariableIsEmpty("QT_QPA_PLATFORM")) {
+        const bool inAppImage = !qEnvironmentVariableIsEmpty("APPIMAGE")
+                             || !qEnvironmentVariableIsEmpty("ARGV0");
+        qputenv("QT_QPA_PLATFORM", inAppImage ? "xcb" : "wayland;xcb");
+    }
 #endif
 
     QGuiApplication app(argc, argv);
@@ -19,8 +21,12 @@ int main(int argc, char *argv[])
     app.setOrganizationName("Pixelator Studio");
 
     PixelWorker pixelWorker;
+    ShortcutManager shortcutManager;
+    
     QQmlApplicationEngine engine;
     engine.rootContext()->setContextProperty("pixelWorker", &pixelWorker);
+    engine.rootContext()->setContextProperty("shortcutManager", &shortcutManager);
+    
     QObject::connect(&engine, &QQmlApplicationEngine::warnings, [](const QList<QQmlError> &warnings) {
         for (const auto &warning : warnings)
             qWarning().noquote() << warning.toString();

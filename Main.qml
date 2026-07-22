@@ -12,6 +12,32 @@ ApplicationWindow {
     title: "PIXELATOR // sprite cleaner"
     color: "#090b12"
 
+    FirstLaunchDialog {
+        id: firstLaunchDialog
+        onShortcutsRequested: {
+            if (shortcutManager.createShortcuts()) {
+                shortcutManager.markFirstLaunchDone()
+                showNotification("Shortcuts created successfully!")
+            } else {
+                showNotification("Failed to create shortcuts.")
+            }
+        }
+        onDismissed: {
+            shortcutManager.markFirstLaunchDone()
+        }
+    }
+
+    function showNotification(message) {
+        statusNotification.text = message
+        statusNotificationTimer.start()
+    }
+
+    Timer {
+        id: statusNotificationTimer
+        interval: 3000
+        onTriggered: statusNotification.text = ""
+    }
+
     property int completed: 0
     property int total: 0
     property string currentFile: "Drop images to begin"
@@ -54,7 +80,15 @@ ApplicationWindow {
                 Text { text: "SPRITE CLEANER / BATCH EDITION"; color: "#6f82a8"; font.pixelSize: 10; font.letterSpacing: 1.3 }
             }
             Item { Layout.fillWidth: true }
+            Text { id: statusNotification; text: ""; color: "#5eead4"; font.bold: true; font.pixelSize: 11; font.letterSpacing: 1; Layout.alignment: Qt.AlignRight }
+            Item { Layout.preferredWidth: statusNotification.visible ? 10 : 0 }
             Text { text: pixelWorker.processing ? "● PROCESSING" : "● READY"; color: pixelWorker.processing ? "#fbbf24" : "#5eead4"; font.bold: true; font.pixelSize: 11; font.letterSpacing: 1 }
+        }
+    }
+
+    Component.onCompleted: {
+        if (shortcutManager.isFirstLaunch()) {
+            firstLaunchDialog.open()
         }
     }
 
