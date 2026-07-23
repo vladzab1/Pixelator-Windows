@@ -1,7 +1,18 @@
 #!/bin/sh
-# AppImage entry point: point Qt at the bundled plugins and QML imports.
+# AppImage entry point: use only bundled Qt/OpenCV, ignore host desktop overrides.
 APPDIR="$(CDPATH= cd -- "$(dirname -- "$0")" && pwd)"
-export QT_PLUGIN_PATH="$APPDIR/usr/plugins${QT_PLUGIN_PATH:+:$QT_PLUGIN_PATH}"
-export QML2_IMPORT_PATH="$APPDIR/usr/qml${QML2_IMPORT_PATH:+:$QML2_IMPORT_PATH}"
-export QML_IMPORT_PATH="$APPDIR/usr/qml${QML_IMPORT_PATH:+:$QML_IMPORT_PATH}"
+
+export LC_ALL=C.UTF-8
+export LANG=C.UTF-8
+
+export LD_LIBRARY_PATH="$APPDIR/usr/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+export QT_PLUGIN_PATH="$APPDIR/usr/plugins"
+export QML2_IMPORT_PATH="$APPDIR/usr/qml"
+export QML_IMPORT_PATH="$APPDIR/usr/qml"
+
+# Host Wayland/Hyprland settings often break portable bundles.
+export QT_QPA_PLATFORM="${QT_QPA_PLATFORM:-xcb}"
+export QT_QUICK_CONTROLS_STYLE=Basic
+unset QT_QUICK_CONTROLS_HYPRSTYLE
+
 exec "$APPDIR/usr/bin/pixelator" "$@"

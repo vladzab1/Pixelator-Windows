@@ -2,8 +2,11 @@
 cmake-build-*/
 build/
 dist/
+dist-*/
 AppDir/
+AppDir_new/
 *.AppImage
+*.zip
 
 # IDE
 .idea/
